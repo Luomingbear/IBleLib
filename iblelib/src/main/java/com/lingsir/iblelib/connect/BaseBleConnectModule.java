@@ -13,6 +13,7 @@ import java.util.UUID;
 
 public abstract class BaseBleConnectModule {
     protected OnBleConnectModuleListener mListener;
+    protected boolean isConnect = false;
     private String code; //
 
     public BaseBleConnectModule(String code) {
@@ -34,7 +35,7 @@ public abstract class BaseBleConnectModule {
 
     public abstract void startConnect(Context context, String mac, UUID uuid);
 
-    public abstract void disConnect(Context context);
+    public abstract boolean disConnect(Context context);
 
     public abstract boolean isConnected();
 

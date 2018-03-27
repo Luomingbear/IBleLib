@@ -34,7 +34,7 @@ public class BroadcastSearchModule extends BaseSearchModule {
     @Override
     public void startSearch(Context context, OnBaseSearchListener listener) {
         this.mListener = listener;
-
+        macList.clear();
         //
         if (context != null) {
             if (mContext == null) {
@@ -108,7 +108,7 @@ public class BroadcastSearchModule extends BaseSearchModule {
                 if (scanDevice == null || scanDevice.getName() == null) return;
 
                 //信号强度。
-                int rssi = intent.getExtras().getInt(BluetoothDevice.EXTRA_RSSI);
+                int rssi = intent.getExtras().getShort(BluetoothDevice.EXTRA_RSSI);
 
                 //已经扫描到的地址就不再加入回调
                 for (String mac : macList) {

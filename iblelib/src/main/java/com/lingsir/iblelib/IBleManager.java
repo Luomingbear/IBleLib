@@ -88,9 +88,8 @@ public class IBleManager {
     /**
      * 断开连接
      */
-    public void disConnect(String mac) {
-        IBleConnectManager.getInstance().disConnect(mac);
-
+    public boolean disConnect(String mac) {
+        return IBleConnectManager.getInstance().disConnect(mac);
     }
 
     /**

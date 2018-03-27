@@ -26,6 +26,7 @@ public class BleSearchModule extends BaseSearchModule {
     @Override
     public void startSearch(Context activity, OnBaseSearchListener listener) {
         this.mListener = listener;
+        macList.clear();
 //        mBluetoothAdapter.startDiscovery();
 
         //手机版本低于18则取消ble搜索
@@ -36,9 +37,11 @@ public class BleSearchModule extends BaseSearchModule {
         }
 
         //蓝牙不可用
-        if (mBluetoothAdapter == null)
+        if (mBluetoothAdapter == null) {
+            if (mListener != null)
+                mListener.onComplete();
             return;
-
+        }
 
         //开始扫描
         mBluetoothAdapter.startLeScan(leScanCallback);
@@ -78,7 +81,8 @@ public class BleSearchModule extends BaseSearchModule {
 
     @Override
     public void stopSearch() {
-        if (Build.VERSION.SDK_INT >= 18)
+        if (Build.VERSION.SDK_INT >= 18) {
             mBluetoothAdapter.stopLeScan(leScanCallback);
+        }
     }
 }

@@ -40,8 +40,11 @@ public class IBleGattConnectModule extends BaseBleConnectModule {
     public void startConnect(final Context context, final String mac, final UUID uuid) {
         this.mac = mac;
         final BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(mac);
-        if (device == null || context == null)
+        if (device == null || context == null) {
+            if (mListener != null)
+                mListener.onFailed(mac, GATT);
             return;
+        }
 
         if (mBluetoothGatt != null) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
@@ -56,6 +59,7 @@ public class IBleGattConnectModule extends BaseBleConnectModule {
             if (mListener != null)
                 mListener.onSucceed(mac, uuid, getMode());
 
+            isConnect = true;
             return;
         }
 
@@ -72,10 +76,9 @@ public class IBleGattConnectModule extends BaseBleConnectModule {
                             Log.i(TAG, "onConnectionStateChange: 连接成功 gatt");
 
                             mListener = null;
-
+                            isConnect = true;
                             //发现服务
                             mBluetoothGatt.discoverServices();
-
                             break;
                         }
 
@@ -83,7 +86,7 @@ public class IBleGattConnectModule extends BaseBleConnectModule {
                             //断开连接
                             mBluetoothGatt.disconnect();
                             mBluetoothGatt.close();
-
+                            isConnect = false;
                             if (mListener != null)
                                 mListener.onFailed(mac, GATT);
 
@@ -159,16 +162,20 @@ public class IBleGattConnectModule extends BaseBleConnectModule {
 
 
     @Override
-    public void disConnect(Context context) {
+    public boolean disConnect(Context context) {
         if (context == null)
-            return;
+            return false;
 
         //断开连接
         if (mBluetoothGatt != null)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
                 mBluetoothGatt.disconnect();
                 mBluetoothGatt.close();
+                isConnect = false;
+                return true;
             }
+
+        return false;
     }
 
     @Override
@@ -181,7 +188,7 @@ public class IBleGattConnectModule extends BaseBleConnectModule {
     }
 
     /**
-     * 数据获取到了广播通知
+     * 数据获取到了,广播通知
      */
     private void sendBroadcast(Context context, String mac, UUID uuid, String code, byte[] bytes) {
         if (bytes == null || bytes.length == 0)

@@ -35,16 +35,17 @@ public class IBleSocketConnectModule extends BaseBleConnectModule {
 
     @Override
     public void startConnect(Context context, final String mac, UUID uuid) {
-
         BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(mac);
-        if (device == null)
+        if (device == null) {
+            if (mListener != null)
+                mListener.onFailed(mac, SOCKET);
             return;
+        }
 
         //已经连接成功的就不需要继续连接了
         if (isConnected()) {
             if (mListener != null)
                 mListener.onSucceed(mac, uuid, getMode());
-
             return;
         }
 
@@ -53,7 +54,6 @@ public class IBleSocketConnectModule extends BaseBleConnectModule {
             mBluetoothSocket = null;
             //通过uuid连接
             mBluetoothSocket = device.createRfcommSocketToServiceRecord(uuid);
-
             if (mBluetoothSocket == null) {
                 if (mListener != null)
                     mListener.onFailed(mac, SOCKET);
@@ -62,7 +62,7 @@ public class IBleSocketConnectModule extends BaseBleConnectModule {
 
             //连接
             mBluetoothSocket.connect();
-
+            isConnect = true;
 
             //
             if (mListener != null)
@@ -70,11 +70,10 @@ public class IBleSocketConnectModule extends BaseBleConnectModule {
 
             Log.i(TAG, "startConnect: 连接成功 socket");
 
-            while (true) {
+            while (isConnect) {
                 InputStream is = mBluetoothSocket.getInputStream();
                 byte[] buffer = new byte[1024];  // 从is获取到的byte[]
                 int bytes; //字节数
-
                 bytes = is.read(buffer);
 
                 String s = new String(buffer, 0, bytes);//说人话
@@ -107,20 +106,28 @@ public class IBleSocketConnectModule extends BaseBleConnectModule {
             if (mListener != null)
                 mListener.onFailed(mac, SOCKET);
 
+            isConnect = false;
             Log.e(TAG, "startConnect: 连接失败 socket");
         }
 
     }
 
     @Override
-    public void disConnect(Context context) {
+    public boolean disConnect(Context context) {
         if (mBluetoothSocket != null) {
             try {
                 mBluetoothSocket.close();
+                isConnect = false;
+                Log.i(TAG, "disConnect: socket:close");
+                return true;
             } catch (IOException e) {
                 e.printStackTrace();
+                return false;
             }
         }
+
+        Log.i(TAG, "disConnect: socket:null");
+        return false;
     }
 
     @Override

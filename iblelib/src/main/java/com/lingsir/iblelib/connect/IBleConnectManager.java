@@ -246,12 +246,14 @@ public class IBleConnectManager {
                 public void onFailed(String mac, int mode) {
                     for (ConnectBleItem item : mConnectItemList) {
                         if (item.mac.equals(mac)) {
-                            return;
+                            mConnectItemList.remove(item);
+                            break;
                         }
                     }
 
                     //尝试最后一个连接方案也失败了
-                    if (mode == mTmpConnectModuleList.get(mTmpConnectModuleList.size() - 1).getMode()) {
+                    if (mTmpConnectModuleList.size() > 0 &&
+                            mode == mTmpConnectModuleList.get(mTmpConnectModuleList.size() - 1).getMode()) {
                         if (mListener != null) {
                             mListener.onFailed(mac);
                         }
@@ -269,18 +271,24 @@ public class IBleConnectManager {
      *
      * @param mac
      */
-    public void disConnect(String mac) {
-        for (BaseBleConnectModule connectModule : mTmpConnectModuleList) {
-            connectModule.disConnect(mContext);
-        }
-
+    public boolean disConnect(String mac) {
         //将连接信息从已经连接的列表里面移除
         for (ConnectBleItem item : mConnectItemList) {
             if (item.mac.equals(mac)) {
                 mConnectItemList.remove(item);
+                break;
             }
         }
 
+        boolean disconnect = true;
+        for (BaseBleConnectModule connectModule : mTmpConnectModuleList) {
+            if (connectModule.getCode().equals(mac)) {
+                disconnect = disconnect && connectModule.disConnect(mContext);
+            }
+        }
+
+        mTmpConnectModuleList.clear();
+        return disconnect;
     }
 
     /**
